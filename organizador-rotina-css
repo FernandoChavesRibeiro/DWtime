@@ -213,7 +213,6 @@ h1 {
     background-color: var(--secondary-color);
 }
 
-/* Modal Styles */
 .modal {
     display: none;
     position: fixed;

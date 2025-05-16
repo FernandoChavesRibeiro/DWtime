@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organizador de Rotinas</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Organizador de Rotinas</h1>
+            <div class="month-navigation">
+                <button id="prev-month"><i class="fas fa-chevron-left"></i></button>
+                <h2 id="current-month">Maio 2023</h2>
+                <button id="next-month"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="calendar-container">
+                <div class="weekdays">
+                    <div>Dom</div>
+                    <div>Seg</div>
+                    <div>Ter</div>
+                    <div>Qua</div>
+                    <div>Qui</div>
+                    <div>Sex</div>
+                    <div>Sáb</div>
+                </div>
+                <div class="days" id="calendar-days"></div>
+            </div>
+
+            <div class="activities-container">
+                <h3 id="selected-date">Selecione uma data</h3>
+                <div class="activities-list" id="activities-list"></div>
+                <button id="add-activity-btn" class="add-btn">+ Adicionar Atividade</button>
+            </div>
+        </div>
+
+        <div id="activity-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn">&times;</span>
+                <h3 id="modal-title">Adicionar Nova Atividade</h3>
+                <form id="activity-form">
+                    <input type="hidden" id="activity-id">
+                    <div class="form-group">
+                        <label for="activity-title">Título:</label>
+                        <input type="text" id="activity-title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="activity-time">Horário:</label>
+                        <input type="time" id="activity-time" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="activity-description">Descrição:</label>
+                        <textarea id="activity-description" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="activity-priority">Prioridade:</label>
+                        <select id="activity-priority">
+                            <option value="low">Baixa</option>
+                            <option value="medium">Média</option>
+                            <option value="high">Alta</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" id="save-activity">Salvar</button>
+                        <button type="button" id="delete-activity" class="delete-btn">Excluir</button>
+                        <button type="button" id="cancel-activity" class="cancel-btn">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

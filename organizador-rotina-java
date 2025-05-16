@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Elementos do DOM
     const calendarDays = document.getElementById('calendar-days');
     const currentMonthElement = document.getElementById('current-month');
     const prevMonthBtn = document.getElementById('prev-month');
@@ -14,17 +13,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const deleteActivityBtn = document.getElementById('delete-activity');
     const modalTitle = document.getElementById('modal-title');
 
-    // Estado da aplicação
     let currentDate = new Date();
     let selectedDate = null;
     let activities = JSON.parse(localStorage.getItem('activities')) || [];
     let editingActivityId = null;
 
-    // Inicialização
     renderCalendar();
     updateSelectedDateDisplay();
 
-    // Event Listeners
     prevMonthBtn.addEventListener('click', goToPreviousMonth);
     nextMonthBtn.addEventListener('click', goToNextMonth);
     addActivityBtn.addEventListener('click', openAddActivityModal);
@@ -33,7 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
     activityForm.addEventListener('submit', handleActivityFormSubmit);
     deleteActivityBtn.addEventListener('click', deleteActivity);
 
-    // Funções do Calendário
     function renderCalendar() {
         calendarDays.innerHTML = '';
         
@@ -49,7 +44,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const daysInLastMonth = new Date(year, month, 0).getDate();
         
-        // Dias do mês anterior
         for (let i = firstDayOfMonth - 1; i >= 0; i--) {
             const day = document.createElement('div');
             day.className = 'day other-month';
@@ -57,7 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
             calendarDays.appendChild(day);
         }
         
-        // Dias do mês atual
         const today = new Date();
         for (let i = 1; i <= daysInMonth; i++) {
             const day = document.createElement('div');
@@ -79,7 +72,6 @@ document.addEventListener('DOMContentLoaded', function() {
             dayNumber.textContent = i;
             day.appendChild(dayNumber);
             
-            // Contador de atividades
             const dayActivities = getActivitiesForDate(dayDate);
             if (dayActivities.length > 0) {
                 const activityCount = document.createElement('div');
@@ -91,7 +83,6 @@ document.addEventListener('DOMContentLoaded', function() {
             calendarDays.appendChild(day);
         }
         
-        // Dias do próximo mês
         const totalDaysShown = firstDayOfMonth + daysInMonth;
         const remainingDays = 7 - (totalDaysShown % 7);
         if (remainingDays < 7) {
@@ -140,7 +131,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Funções de Atividades
     function getActivitiesForDate(date) {
         return activities.filter(activity => {
             const activityDate = new Date(activity.date);
@@ -194,7 +184,6 @@ document.addEventListener('DOMContentLoaded', function() {
         modalTitle.textContent = 'Adicionar Nova Atividade';
         deleteActivityBtn.style.display = 'none';
         
-        // Reset form
         activityForm.reset();
         document.getElementById('activity-time').value = '08:00';
         
@@ -213,7 +202,6 @@ document.addEventListener('DOMContentLoaded', function() {
         modalTitle.textContent = 'Editar Atividade';
         deleteActivityBtn.style.display = 'inline-block';
         
-        // Preencher formulário
         document.getElementById('activity-id').value = activity.id;
         document.getElementById('activity-title').value = activity.title;
         document.getElementById('activity-time').value = activity.time;
@@ -246,13 +234,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (editingActivityId) {
-            // Atualizar atividade existente
             const index = activities.findIndex(a => a.id === editingActivityId);
             if (index !== -1) {
                 activities[index] = formData;
             }
         } else {
-            // Adicionar nova atividade
             activities.push(formData);
         }
         
@@ -278,7 +264,6 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('activities', JSON.stringify(activities));
     }
 
-    // Fechar modal ao clicar fora dele
     window.addEventListener('click', (e) => {
         if (e.target === activityModal) {
             closeModal();

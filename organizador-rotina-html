@@ -3,23 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organizador de Rotinas</title>
+    <title>Organizador de Tarefas e Rotinas</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Organizador de Rotinas</h1>
-            <div class="month-navigation">
-                <button id="prev-month"><i class="fas fa-chevron-left"></i></button>
-                <h2 id="current-month">Maio 2023</h2>
-                <button id="next-month"><i class="fas fa-chevron-right"></i></button>
-            </div>
+            <h1>Organizador de Tarefas e Rotinas</h1>
         </header>
 
         <div class="main-content">
+            <div class="categorias-container">
+                <h2>Categorias</h2>
+                <form id="formCategoria">
+                    <input type="text" id="nomeCategoria" placeholder="Nova categoria" required>
+                    <button type="submit">Adicionar</button>
+                </form>
+                <ul id="listaCategorias"></ul>
+            </div>
+
+            <div class="tarefas-container hidden" id="areaTarefas">
+                <h2 id="tituloTarefas">Tarefas</h2>
+                <form id="formTarefa">
+                    <input type="text" id="descricaoTarefa" placeholder="Nova tarefa" required>
+                    <button type="submit">Adicionar</button>
+                </form>
+                <ul id="listaTarefas"></ul>
+            </div>
+
             <div class="calendar-container">
+                <div class="month-navigation">
+                    <button id="prev-month"><i class="fas fa-chevron-left"></i></button>
+                    <h2 id="current-month">Maio 2025</h2>
+                    <button id="next-month"><i class="fas fa-chevron-right"></i></button>
+                </div>
                 <div class="weekdays">
                     <div>Dom</div>
                     <div>Seg</div>

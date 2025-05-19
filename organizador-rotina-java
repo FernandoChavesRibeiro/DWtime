@@ -1,39 +1,70 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const calendarDays = document.getElementById('calendar-days');
-    const currentMonthElement = document.getElementById('current-month');
-    const prevMonthBtn = document.getElementById('prev-month');
-    const nextMonthBtn = document.getElementById('next-month');
-    const activitiesList = document.getElementById('activities-list');
-    const selectedDateElement = document.getElementById('selected-date');
-    const addActivityBtn = document.getElementById('add-activity-btn');
-    const activityModal = document.getElementById('activity-modal');
+    const getElement = (id) => {
+        const el = document.getElementById(id);
+        if (!el) console.error(`Elemento #${id} não encontrado`);
+        return el;
+    };
+
+    const calendarDays = getElement('calendar-days');
+    const currentMonthElement = getElement('current-month');
+    const prevMonthBtn = getElement('prev-month');
+    const nextMonthBtn = getElement('next-month');
+    const activitiesList = getElement('activities-list');
+    const selectedDateElement = getElement('selected-date');
+    const addActivityBtn = getElement('add-activity-btn');
+    const activityModal = getElement('activity-modal');
     const closeModalBtn = document.querySelector('.close-btn');
-    const cancelActivityBtn = document.getElementById('cancel-activity');
-    const activityForm = document.getElementById('activity-form');
-    const deleteActivityBtn = document.getElementById('delete-activity');
-    const modalTitle = document.getElementById('modal-title');
+    const cancelActivityBtn = getElement('cancel-activity');
+    const activityForm = getElement('activity-form');
+    const deleteActivityBtn = getElement('delete-activity');
+    const modalTitle = getElement('modal-title');
+
+    if (!calendarDays || !activityForm) {
+        console.error('Elementos essenciais não encontrados');
+        return;
+    }
 
     let currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    
     let selectedDate = null;
-    let activities = JSON.parse(localStorage.getItem('activities')) || [];
+    let activities = [];
+    
+    try {
+        const storedActivities = localStorage.getItem('activities');
+        activities = storedActivities ? JSON.parse(storedActivities) : [];
+        if (!Array.isArray(activities)) {
+            activities = [];
+            throw new Error('Dados inválidos no localStorage');
+        }
+    } catch (e) {
+        console.error('Erro ao carregar atividades:', e);
+        activities = [];
+    }
+
     let editingActivityId = null;
 
-    renderCalendar();
-    updateSelectedDateDisplay();
+    const normalizeDate = (date) => {
+        const d = new Date(date);
+        d.setHours(0, 0, 0, 0);
+        return d;
+    };
 
-    prevMonthBtn.addEventListener('click', goToPreviousMonth);
-    nextMonthBtn.addEventListener('click', goToNextMonth);
-    addActivityBtn.addEventListener('click', openAddActivityModal);
-    closeModalBtn.addEventListener('click', closeModal);
-    cancelActivityBtn.addEventListener('click', closeModal);
-    activityForm.addEventListener('submit', handleActivityFormSubmit);
-    deleteActivityBtn.addEventListener('click', deleteActivity);
+    const isSameDate = (date1, date2) => {
+        if (!date1 || !date2) return false;
+        return date1.getFullYear() === date2.getFullYear() &&
+               date1.getMonth() === date2.getMonth() &&
+               date1.getDate() === date2.getDate();
+    };
 
-    function renderCalendar() {
+    const renderCalendar = () => {
+        if (!calendarDays) return;
+        
         calendarDays.innerHTML = '';
         
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
+        const today = normalizeDate(new Date());
         
         currentMonthElement.textContent = new Date(year, month, 1).toLocaleDateString('pt-BR', {
             month: 'long',
@@ -45,80 +76,79 @@ document.addEventListener('DOMContentLoaded', function() {
         const daysInLastMonth = new Date(year, month, 0).getDate();
         
         for (let i = firstDayOfMonth - 1; i >= 0; i--) {
-            const day = document.createElement('div');
-            day.className = 'day other-month';
-            day.textContent = daysInLastMonth - i;
-            calendarDays.appendChild(day);
+            const dayElement = createDayElement(daysInLastMonth - i, true);
+            calendarDays.appendChild(dayElement);
         }
         
-        const today = new Date();
         for (let i = 1; i <= daysInMonth; i++) {
-            const day = document.createElement('div');
-            day.className = 'day';
+            const dayDate = normalizeDate(new Date(year, month, i));
+            const dayElement = createDayElement(i, false);
             
-            if (month === today.getMonth() && year === today.getFullYear() && i === today.getDate()) {
-                day.classList.add('today');
+            if (isSameDate(dayDate, today)) {
+                dayElement.classList.add('today');
             }
             
-            const dayDate = new Date(year, month, i);
             if (selectedDate && isSameDate(dayDate, selectedDate)) {
-                day.classList.add('selected');
+                dayElement.classList.add('selected');
             }
-            
-            day.addEventListener('click', () => selectDate(dayDate));
-            
-            const dayNumber = document.createElement('div');
-            dayNumber.className = 'day-number';
-            dayNumber.textContent = i;
-            day.appendChild(dayNumber);
             
             const dayActivities = getActivitiesForDate(dayDate);
             if (dayActivities.length > 0) {
-                const activityCount = document.createElement('div');
-                activityCount.className = 'activity-count';
-                activityCount.textContent = dayActivities.length;
-                day.appendChild(activityCount);
+                const countElement = document.createElement('div');
+                countElement.className = 'activity-count';
+                countElement.textContent = dayActivities.length;
+                dayElement.appendChild(countElement);
             }
             
-            calendarDays.appendChild(day);
+            calendarDays.appendChild(dayElement);
         }
         
         const totalDaysShown = firstDayOfMonth + daysInMonth;
         const remainingDays = 7 - (totalDaysShown % 7);
         if (remainingDays < 7) {
             for (let i = 1; i <= remainingDays; i++) {
-                const day = document.createElement('div');
-                day.className = 'day other-month';
-                day.textContent = i;
-                calendarDays.appendChild(day);
+                const dayElement = createDayElement(i, true);
+                calendarDays.appendChild(dayElement);
             }
         }
-    }
-    
-    function goToPreviousMonth() {
+    };
+
+    const createDayElement = (dayNumber, isOtherMonth) => {
+        const dayElement = document.createElement('div');
+        dayElement.className = `day ${isOtherMonth ? 'other-month' : ''}`;
+        
+        const dayNumberElement = document.createElement('div');
+        dayNumberElement.className = 'day-number';
+        dayNumberElement.textContent = dayNumber;
+        dayElement.appendChild(dayNumberElement);
+        
+        if (!isOtherMonth) {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const dayDate = normalizeDate(new Date(year, month, dayNumber));
+            
+            dayElement.addEventListener('click', () => {
+                selectedDate = dayDate;
+                renderCalendar();
+                renderActivitiesList();
+                updateSelectedDateDisplay();
+            });
+        }
+        
+        return dayElement;
+    };
+
+    const goToPreviousMonth = () => {
         currentDate.setMonth(currentDate.getMonth() - 1);
         renderCalendar();
-    }
+    };
     
-    function goToNextMonth() {
+    const goToNextMonth = () => {
         currentDate.setMonth(currentDate.getMonth() + 1);
         renderCalendar();
-    }
+    };
     
-    function selectDate(date) {
-        selectedDate = date;
-        renderCalendar();
-        renderActivitiesList();
-        updateSelectedDateDisplay();
-    }
-    
-    function isSameDate(date1, date2) {
-        return date1.getFullYear() === date2.getFullYear() &&
-               date1.getMonth() === date2.getMonth() &&
-               date1.getDate() === date2.getDate();
-    }
-    
-    function updateSelectedDateDisplay() {
+    const updateSelectedDateDisplay = () => {
         if (selectedDate) {
             selectedDateElement.textContent = selectedDate.toLocaleDateString('pt-BR', {
                 weekday: 'long',
@@ -129,16 +159,16 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             selectedDateElement.textContent = 'Selecione uma data';
         }
-    }
+    };
 
-    function getActivitiesForDate(date) {
+    const getActivitiesForDate = (date) => {
         return activities.filter(activity => {
-            const activityDate = new Date(activity.date);
+            const activityDate = normalizeDate(new Date(activity.date));
             return isSameDate(activityDate, date);
         }).sort((a, b) => a.time.localeCompare(b.time));
-    }
+    };
     
-    function renderActivitiesList() {
+    const renderActivitiesList = () => {
         activitiesList.innerHTML = '';
         
         if (!selectedDate) {
@@ -167,14 +197,14 @@ document.addEventListener('DOMContentLoaded', function() {
             activityItem.addEventListener('click', () => editActivity(activity.id));
             activitiesList.appendChild(activityItem);
         });
-    }
+    };
     
-    function formatTime(timeString) {
+    const formatTime = (timeString) => {
         const [hours, minutes] = timeString.split(':');
         return `${hours}:${minutes}`;
-    }
+    };
     
-    function openAddActivityModal() {
+    const openAddActivityModal = () => {
         if (!selectedDate) {
             alert('Por favor, selecione uma data primeiro.');
             return;
@@ -188,13 +218,13 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('activity-time').value = '08:00';
         
         activityModal.style.display = 'block';
-    }
+    };
     
-    function closeModal() {
+    const closeModal = () => {
         activityModal.style.display = 'none';
-    }
+    };
     
-    function editActivity(activityId) {
+    const editActivity = (activityId) => {
         const activity = activities.find(a => a.id === activityId);
         if (!activity) return;
         
@@ -209,9 +239,9 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('activity-priority').value = activity.priority;
         
         activityModal.style.display = 'block';
-    }
+    };
     
-    function handleActivityFormSubmit(e) {
+    const handleActivityFormSubmit = (e) => {
         e.preventDefault();
         
         if (!selectedDate) {
@@ -246,9 +276,9 @@ document.addEventListener('DOMContentLoaded', function() {
         closeModal();
         renderCalendar();
         renderActivitiesList();
-    }
+    };
     
-    function deleteActivity() {
+    const deleteActivity = () => {
         if (!editingActivityId) return;
         
         if (confirm('Tem certeza que deseja excluir esta atividade?')) {
@@ -258,15 +288,30 @@ document.addEventListener('DOMContentLoaded', function() {
             renderCalendar();
             renderActivitiesList();
         }
-    }
+    };
     
-    function saveActivities() {
+    const saveActivities = () => {
         localStorage.setItem('activities', JSON.stringify(activities));
-    }
+    };
 
-    window.addEventListener('click', (e) => {
-        if (e.target === activityModal) {
-            closeModal();
-        }
-    });
+    try {
+        renderCalendar();
+        updateSelectedDateDisplay();
+        
+        if (prevMonthBtn) prevMonthBtn.addEventListener('click', goToPreviousMonth);
+        if (nextMonthBtn) nextMonthBtn.addEventListener('click', goToNextMonth);
+        if (addActivityBtn) addActivityBtn.addEventListener('click', openAddActivityModal);
+        if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+        if (cancelActivityBtn) cancelActivityBtn.addEventListener('click', closeModal);
+        if (activityForm) activityForm.addEventListener('submit', handleActivityFormSubmit);
+        if (deleteActivityBtn) deleteActivityBtn.addEventListener('click', deleteActivity);
+        
+        window.addEventListener('click', (e) => {
+            if (e.target === activityModal) {
+                closeModal();
+            }
+        });
+    } catch (e) {
+        console.error('Erro na inicialização:', e);
+    }
 });

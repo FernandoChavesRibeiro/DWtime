@@ -28,11 +28,14 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 20px;
 }
 
 header {
+    grid-column: 1 / -1;
     text-align: center;
-    margin-bottom: 30px;
     padding: 20px 0;
     background-color: white;
     border-radius: var(--border-radius);
@@ -44,262 +47,105 @@ h1 {
     margin-bottom: 10px;
 }
 
-.month-navigation {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    margin-top: 15px;
-}
-
-.month-navigation button {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    cursor: pointer;
-    color: var(--primary-color);
-    padding: 5px 10px;
-    border-radius: var(--border-radius);
-    transition: background-color 0.3s;
-}
-
-.month-navigation button:hover {
-    background-color: rgba(74, 111, 165, 0.1);
-}
-
-.main-content {
-    display: flex;
-    gap: 20px;
-}
-
-.calendar-container, .activities-container {
+.categorias-container, .tarefas-container {
     background-color: white;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     padding: 20px;
 }
 
-.calendar-container {
-    flex: 2;
-}
-
-.activities-container {
-    flex: 1;
-    min-width: 300px;
-}
-
-.weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    text-align: center;
-    font-weight: bold;
-    margin-bottom: 10px;
-    color: var(--secondary-color);
-}
-
-.days {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
-}
-
-.day {
-    aspect-ratio: 1;
-    padding: 5px;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    transition: background-color 0.3s;
-}
-
-.day:hover {
-    background-color: rgba(74, 111, 165, 0.1);
-}
-
-.day.today {
-    background-color: var(--accent-color);
-    color: white;
-    font-weight: bold;
-}
-
-.day.selected {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-.day.other-month {
-    color: #aaa;
-}
-
-.day-number {
-    align-self: flex-end;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.activity-count {
-    font-size: 0.8rem;
-    background-color: var(--primary-color);
-    color: white;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: auto;
-    align-self: flex-start;
-}
-
-.activities-list {
-    margin-top: 20px;
-    max-height: 500px;
-    overflow-y: auto;
-}
-
-.activity-item {
-    background-color: #f8f9fa;
-    border-left: 4px solid var(--primary-color);
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.activity-item:hover {
-    transform: translateX(5px);
-}
-
-.activity-item.high-priority {
-    border-left-color: var(--danger-color);
-}
-
-.activity-item.medium-priority {
-    border-left-color: var(--warning-color);
-}
-
-.activity-time {
-    font-weight: bold;
-    color: var(--secondary-color);
-    margin-bottom: 5px;
-}
-
-.activity-title {
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.activity-description {
-    font-size: 0.9rem;
-    color: #666;
-}
-
-.add-btn {
-    width: 100%;
-    padding: 10px;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-weight: bold;
-    margin-top: 20px;
-    transition: background-color 0.3s;
-}
-
-.add-btn:hover {
-    background-color: var(--secondary-color);
-}
-
-.modal {
+.hidden {
     display: none;
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
 }
 
-.modal-content {
-    background-color: white;
-    margin: 10% auto;
-    padding: 20px;
+#listaCategorias, #listaTarefas {
+    list-style: none;
+    margin-top: 15px;
+}
+
+#listaCategorias li, #listaTarefas li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 8px;
+    background-color: var(--light-color);
     border-radius: var(--border-radius);
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    position: relative;
+    transition: all 0.2s;
 }
 
-.close-btn {
-    position: absolute;
-    right: 20px;
-    top: 15px;
-    font-size: 1.5rem;
+#listaTarefas li.concluida {
+    opacity: 0.7;
+    text-decoration: line-through;
+    background-color: #e8e8e8;
+}
+
+.categoria-nome {
     cursor: pointer;
-    color: #aaa;
+    flex-grow: 1;
 }
 
-.close-btn:hover {
-    color: var(--dark-color);
+.categoria-nome:hover {
+    color: var(--primary-color);
 }
 
-.form-group {
-    margin-bottom: 15px;
+.tarefa-descricao {
+    cursor: pointer;
+    flex-grow: 1;
 }
 
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
+button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    margin-left: 5px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
 }
 
-.form-group input,
-.form-group textarea,
-.form-group select {
-    width: 100%;
+button.editar {
+    color: var(--warning-color);
+}
+
+button.excluir {
+    color: var(--danger-color);
+}
+
+button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+form {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+input[type="text"], input[type="checkbox"] {
     padding: 8px;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: var(--border-radius);
 }
 
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
+input[type="text"] {
+    flex-grow: 1;
 }
 
-.form-actions button {
-    padding: 8px 15px;
-    border: none;
-    border-radius: 4px;
+input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
     cursor: pointer;
-    font-weight: bold;
 }
 
-#save-activity {
-    background-color: var(--success-color);
-    color: white;
-}
-
-#delete-activity {
-    background-color: var(--danger-color);
-    color: white;
-    display: none;
-}
-
-#cancel-activity {
-    background-color: #6c757d;
-    color: white;
+#tituloTarefas {
+    margin-bottom: 15px;
+    color: var(--primary-color);
+    font-size: 1.2rem;
 }
 
 @media (max-width: 768px) {
-    .main-content {
-        flex-direction: column;
+    .container {
+        grid-template-columns: 1fr;
     }
-} 
+}

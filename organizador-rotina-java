@@ -1,317 +1,207 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const getElement = (id) => {
-        const el = document.getElementById(id);
-        if (!el) console.error(`Elemento #${id} não encontrado`);
-        return el;
+    const formCategoria = document.getElementById("formCategoria");
+    const inputCategoria = document.getElementById("nomeCategoria");
+    const listaCategorias = document.getElementById("listaCategorias");
+    const areaTarefas = document.getElementById("areaTarefas");
+    const tituloTarefas = document.getElementById("tituloTarefas");
+    const formTarefa = document.getElementById("formTarefa");
+    const inputTarefa = document.getElementById("descricaoTarefa");
+    const listaTarefas = document.getElementById("listaTarefas");
+
+    let categorias = JSON.parse(localStorage.getItem("categorias")) || [];
+    let tarefas = JSON.parse(localStorage.getItem("tarefas")) || [];
+    let categoriaAtivaId = null;
+
+    const salvar = (chave, dados) => {
+        localStorage.setItem(chave, JSON.stringify(dados));
     };
 
-    const calendarDays = getElement('calendar-days');
-    const currentMonthElement = getElement('current-month');
-    const prevMonthBtn = getElement('prev-month');
-    const nextMonthBtn = getElement('next-month');
-    const activitiesList = getElement('activities-list');
-    const selectedDateElement = getElement('selected-date');
-    const addActivityBtn = getElement('add-activity-btn');
-    const activityModal = getElement('activity-modal');
-    const closeModalBtn = document.querySelector('.close-btn');
-    const cancelActivityBtn = getElement('cancel-activity');
-    const activityForm = getElement('activity-form');
-    const deleteActivityBtn = getElement('delete-activity');
-    const modalTitle = getElement('modal-title');
-
-    if (!calendarDays || !activityForm) {
-        console.error('Elementos essenciais não encontrados');
-        return;
-    }
-
-    let currentDate = new Date();
-    currentDate.setHours(0, 0, 0, 0);
-    
-    let selectedDate = null;
-    let activities = [];
-    
-    try {
-        const storedActivities = localStorage.getItem('activities');
-        activities = storedActivities ? JSON.parse(storedActivities) : [];
-        if (!Array.isArray(activities)) {
-            activities = [];
-            throw new Error('Dados inválidos no localStorage');
-        }
-    } catch (e) {
-        console.error('Erro ao carregar atividades:', e);
-        activities = [];
-    }
-
-    let editingActivityId = null;
-
-    const normalizeDate = (date) => {
-        const d = new Date(date);
-        d.setHours(0, 0, 0, 0);
-        return d;
+    const validarEntrada = (valor) => {
+        return valor && valor.trim() !== '';
     };
 
-    const isSameDate = (date1, date2) => {
-        if (!date1 || !date2) return false;
-        return date1.getFullYear() === date2.getFullYear() &&
-               date1.getMonth() === date2.getMonth() &&
-               date1.getDate() === date2.getDate();
-    };
-
-    const renderCalendar = () => {
-        if (!calendarDays) return;
-        
-        calendarDays.innerHTML = '';
-        
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        const today = normalizeDate(new Date());
-        
-        currentMonthElement.textContent = new Date(year, month, 1).toLocaleDateString('pt-BR', {
-            month: 'long',
-            year: 'numeric'
-        }).replace(/^./, (match) => match.toUpperCase());
-        
-        const firstDayOfMonth = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const daysInLastMonth = new Date(year, month, 0).getDate();
-        
-        for (let i = firstDayOfMonth - 1; i >= 0; i--) {
-            const dayElement = createDayElement(daysInLastMonth - i, true);
-            calendarDays.appendChild(dayElement);
-        }
-        
-        for (let i = 1; i <= daysInMonth; i++) {
-            const dayDate = normalizeDate(new Date(year, month, i));
-            const dayElement = createDayElement(i, false);
-            
-            if (isSameDate(dayDate, today)) {
-                dayElement.classList.add('today');
-            }
-            
-            if (selectedDate && isSameDate(dayDate, selectedDate)) {
-                dayElement.classList.add('selected');
-            }
-            
-            const dayActivities = getActivitiesForDate(dayDate);
-            if (dayActivities.length > 0) {
-                const countElement = document.createElement('div');
-                countElement.className = 'activity-count';
-                countElement.textContent = dayActivities.length;
-                dayElement.appendChild(countElement);
-            }
-            
-            calendarDays.appendChild(dayElement);
-        }
-        
-        const totalDaysShown = firstDayOfMonth + daysInMonth;
-        const remainingDays = 7 - (totalDaysShown % 7);
-        if (remainingDays < 7) {
-            for (let i = 1; i <= remainingDays; i++) {
-                const dayElement = createDayElement(i, true);
-                calendarDays.appendChild(dayElement);
-            }
-        }
-    };
-
-    const createDayElement = (dayNumber, isOtherMonth) => {
-        const dayElement = document.createElement('div');
-        dayElement.className = `day ${isOtherMonth ? 'other-month' : ''}`;
-        
-        const dayNumberElement = document.createElement('div');
-        dayNumberElement.className = 'day-number';
-        dayNumberElement.textContent = dayNumber;
-        dayElement.appendChild(dayNumberElement);
-        
-        if (!isOtherMonth) {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            const dayDate = normalizeDate(new Date(year, month, dayNumber));
-            
-            dayElement.addEventListener('click', () => {
-                selectedDate = dayDate;
-                renderCalendar();
-                renderActivitiesList();
-                updateSelectedDateDisplay();
-            });
-        }
-        
-        return dayElement;
-    };
-
-    const goToPreviousMonth = () => {
-        currentDate.setMonth(currentDate.getMonth() - 1);
-        renderCalendar();
-    };
-    
-    const goToNextMonth = () => {
-        currentDate.setMonth(currentDate.getMonth() + 1);
-        renderCalendar();
-    };
-    
-    const updateSelectedDateDisplay = () => {
-        if (selectedDate) {
-            selectedDateElement.textContent = selectedDate.toLocaleDateString('pt-BR', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            }).replace(/^./, (match) => match.toUpperCase());
-        } else {
-            selectedDateElement.textContent = 'Selecione uma data';
-        }
-    };
-
-    const getActivitiesForDate = (date) => {
-        return activities.filter(activity => {
-            const activityDate = normalizeDate(new Date(activity.date));
-            return isSameDate(activityDate, date);
-        }).sort((a, b) => a.time.localeCompare(b.time));
-    };
-    
-    const renderActivitiesList = () => {
-        activitiesList.innerHTML = '';
-        
-        if (!selectedDate) {
-            return;
-        }
-        
-        const dayActivities = getActivitiesForDate(selectedDate);
-        
-        if (dayActivities.length === 0) {
-            const emptyMessage = document.createElement('p');
-            emptyMessage.textContent = 'Nenhuma atividade para este dia.';
-            emptyMessage.style.textAlign = 'center';
-            emptyMessage.style.color = '#666';
-            activitiesList.appendChild(emptyMessage);
-            return;
-        }
-        
-        dayActivities.forEach(activity => {
-            const activityItem = document.createElement('div');
-            activityItem.className = `activity-item ${activity.priority}-priority`;
-            activityItem.innerHTML = `
-                <div class="activity-time">${formatTime(activity.time)}</div>
-                <div class="activity-title">${activity.title}</div>
-                ${activity.description ? `<div class="activity-description">${activity.description}</div>` : ''}
-            `;
-            activityItem.addEventListener('click', () => editActivity(activity.id));
-            activitiesList.appendChild(activityItem);
-        });
-    };
-    
-    const formatTime = (timeString) => {
-        const [hours, minutes] = timeString.split(':');
-        return `${hours}:${minutes}`;
-    };
-    
-    const openAddActivityModal = () => {
-        if (!selectedDate) {
-            alert('Por favor, selecione uma data primeiro.');
-            return;
-        }
-        
-        editingActivityId = null;
-        modalTitle.textContent = 'Adicionar Nova Atividade';
-        deleteActivityBtn.style.display = 'none';
-        
-        activityForm.reset();
-        document.getElementById('activity-time').value = '08:00';
-        
-        activityModal.style.display = 'block';
-    };
-    
-    const closeModal = () => {
-        activityModal.style.display = 'none';
-    };
-    
-    const editActivity = (activityId) => {
-        const activity = activities.find(a => a.id === activityId);
-        if (!activity) return;
-        
-        editingActivityId = activityId;
-        modalTitle.textContent = 'Editar Atividade';
-        deleteActivityBtn.style.display = 'inline-block';
-        
-        document.getElementById('activity-id').value = activity.id;
-        document.getElementById('activity-title').value = activity.title;
-        document.getElementById('activity-time').value = activity.time;
-        document.getElementById('activity-description').value = activity.description || '';
-        document.getElementById('activity-priority').value = activity.priority;
-        
-        activityModal.style.display = 'block';
-    };
-    
-    const handleActivityFormSubmit = (e) => {
+    formCategoria.addEventListener("submit", (e) => {
         e.preventDefault();
+        const nome = inputCategoria.value.trim();
+        if (!validarEntrada(nome)) return;
         
-        if (!selectedDate) {
-            alert('Por favor, selecione uma data primeiro.');
-            return;
-        }
-        
-        const formData = {
-            id: editingActivityId || Date.now().toString(),
-            title: document.getElementById('activity-title').value.trim(),
-            time: document.getElementById('activity-time').value,
-            description: document.getElementById('activity-description').value.trim(),
-            priority: document.getElementById('activity-priority').value,
-            date: selectedDate.toISOString()
+        const novaCategoria = { 
+            id: Date.now(), 
+            nome 
         };
-        
-        if (!formData.title) {
-            alert('Por favor, insira um título para a atividade.');
-            return;
-        }
-        
-        if (editingActivityId) {
-            const index = activities.findIndex(a => a.id === editingActivityId);
-            if (index !== -1) {
-                activities[index] = formData;
-            }
-        } else {
-            activities.push(formData);
-        }
-        
-        saveActivities();
-        closeModal();
-        renderCalendar();
-        renderActivitiesList();
-    };
-    
-    const deleteActivity = () => {
-        if (!editingActivityId) return;
-        
-        if (confirm('Tem certeza que deseja excluir esta atividade?')) {
-            activities = activities.filter(a => a.id !== editingActivityId);
-            saveActivities();
-            closeModal();
-            renderCalendar();
-            renderActivitiesList();
-        }
-    };
-    
-    const saveActivities = () => {
-        localStorage.setItem('activities', JSON.stringify(activities));
+        categorias.push(novaCategoria);
+        salvar("categorias", categorias);
+        renderizarCategorias();
+        formCategoria.reset();
+    });
+
+    const renderizarCategorias = () => {
+        listaCategorias.innerHTML = "";
+        categorias.forEach(cat => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                <span data-id="${cat.id}" class="categoria-nome">${cat.nome}</span>
+                <div>
+                    <button class="editar" data-id="${cat.id}">✏️</button>
+                    <button class="excluir" data-id="${cat.id}">🗑️</button>
+                </div>
+            `;
+            listaCategorias.appendChild(li);
+        });
+
+        document.querySelectorAll('.categoria-nome').forEach(el => {
+            el.addEventListener('click', (e) => {
+                abrirTarefas(parseInt(e.target.dataset.id));
+            });
+        });
+
+        document.querySelectorAll('.editar').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                editarCategoria(parseInt(e.target.dataset.id));
+            });
+        });
+
+        document.querySelectorAll('.excluir').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                excluirCategoria(parseInt(e.target.dataset.id));
+            });
+        });
     };
 
-    try {
-        renderCalendar();
-        updateSelectedDateDisplay();
+    const editarCategoria = (id) => {
+        const categoria = categorias.find(c => c.id === id);
+        if (!categoria) return;
         
-        if (prevMonthBtn) prevMonthBtn.addEventListener('click', goToPreviousMonth);
-        if (nextMonthBtn) nextMonthBtn.addEventListener('click', goToNextMonth);
-        if (addActivityBtn) addActivityBtn.addEventListener('click', openAddActivityModal);
-        if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
-        if (cancelActivityBtn) cancelActivityBtn.addEventListener('click', closeModal);
-        if (activityForm) activityForm.addEventListener('submit', handleActivityFormSubmit);
-        if (deleteActivityBtn) deleteActivityBtn.addEventListener('click', deleteActivity);
-        
-        window.addEventListener('click', (e) => {
-            if (e.target === activityModal) {
-                closeModal();
+        const novoNome = prompt("Novo nome:", categoria.nome);
+        if (validarEntrada(novoNome)) {
+            categoria.nome = novoNome;
+            salvar("categorias", categorias);
+            renderizarCategorias();
+            
+            if (categoriaAtivaId === id) {
+                tituloTarefas.textContent = `Tarefas de: ${novoNome}`;
             }
+        }
+    };
+
+    const excluirCategoria = (id) => {
+        if (!confirm("Tem certeza que deseja excluir esta categoria e todas suas tarefas?")) return;
+        
+        categorias = categorias.filter(c => c.id !== id);
+        tarefas = tarefas.filter(t => t.categoriaId !== id);
+        salvar("categorias", categorias);
+        salvar("tarefas", tarefas);
+        renderizarCategorias();
+        
+        if (categoriaAtivaId === id) {
+            fecharTarefas();
+        }
+    };
+
+    const abrirTarefas = (id) => {
+        categoriaAtivaId = id;
+        const categoria = categorias.find(c => c.id === id);
+        if (!categoria) return;
+        
+        tituloTarefas.textContent = `Tarefas de: ${categoria.nome}`;
+        areaTarefas.classList.remove("hidden");
+        renderizarTarefas();
+    };
+
+    const fecharTarefas = () => {
+        areaTarefas.classList.add("hidden");
+        categoriaAtivaId = null;
+        inputTarefa.value = "";
+    };
+
+    formTarefa.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const descricao = inputTarefa.value.trim();
+        if (!validarEntrada(descricao) || categoriaAtivaId === null) return;
+        
+        const novaTarefa = {
+            id: Date.now(),
+            descricao,
+            categoriaId: categoriaAtivaId,
+            concluida: false
+        };
+        tarefas.push(novaTarefa);
+        salvar("tarefas", tarefas);
+        renderizarTarefas();
+        formTarefa.reset();
+    });
+
+    const renderizarTarefas = () => {
+        listaTarefas.innerHTML = "";
+        const tarefasDaCategoria = tarefas.filter(t => t.categoriaId === categoriaAtivaId);
+        
+        tarefasDaCategoria.forEach(t => {
+            const li = document.createElement("li");
+            li.className = t.concluida ? "concluida" : "";
+            li.innerHTML = `
+                <span data-id="${t.id}" class="tarefa-descricao">${t.descricao}</span>
+                <div>
+                    <input type="checkbox" ${t.concluida ? "checked" : ""} data-id="${t.id}" class="concluir-tarefa">
+                    <button class="editar" data-id="${t.id}">✏️</button>
+                    <button class="excluir" data-id="${t.id}">🗑️</button>
+                </div>
+            `;
+            listaTarefas.appendChild(li);
         });
-    } catch (e) {
-        console.error('Erro na inicialização:', e);
-    }
+
+        document.querySelectorAll('.tarefa-descricao').forEach(el => {
+            el.addEventListener('click', (e) => {
+                editarTarefa(parseInt(e.target.dataset.id));
+            });
+        });
+
+        document.querySelectorAll('.editar').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                editarTarefa(parseInt(e.target.dataset.id));
+            });
+        });
+
+        document.querySelectorAll('.excluir').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                excluirTarefa(parseInt(e.target.dataset.id));
+            });
+        });
+
+        document.querySelectorAll('.concluir-tarefa').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                toggleConclusaoTarefa(parseInt(e.target.dataset.id));
+            });
+        });
+    };
+
+    const editarTarefa = (id) => {
+        const tarefa = tarefas.find(t => t.id === id);
+        if (!tarefa) return;
+        
+        const novaDescricao = prompt("Nova descrição:", tarefa.descricao);
+        if (validarEntrada(novaDescricao)) {
+            tarefa.descricao = novaDescricao;
+            salvar("tarefas", tarefas);
+            renderizarTarefas();
+        }
+    };
+
+    const excluirTarefa = (id) => {
+        if (!confirm("Tem certeza que deseja excluir esta tarefa?")) return;
+        
+        tarefas = tarefas.filter(t => t.id !== id);
+        salvar("tarefas", tarefas);
+        renderizarTarefas();
+    };
+
+    const toggleConclusaoTarefa = (id) => {
+        const tarefa = tarefas.find(t => t.id === id);
+        if (tarefa) {
+            tarefa.concluida = !tarefa.concluida;
+            salvar("tarefas", tarefas);
+            renderizarTarefas();
+        }
+    };
+
+    renderizarCategorias();
 });

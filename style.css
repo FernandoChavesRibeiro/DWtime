@@ -1,76 +1,57 @@
 body {
-    font-family: 'Segoe UI', sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .container {
-    max-width: 700px;
-    margin: 40px auto;
-    background: #fff;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  
-  h1, h2 {
-    text-align: center;
-    color: #333;
-  }
-  
-  .form {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-  
-  input[type="text"] {
-    flex: 1;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 16px;
-  }
-  
-  button {
-    padding: 12px 18px;
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  
-  button:hover {
-    background-color: #388e3c;
-  }
-  
-  .lista {
-    list-style: none;
-    padding: 0;
-  }
-  
-  .lista li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #eaeaea;
-    padding: 12px;
-    border-radius: 6px;
-    margin-bottom: 10px;
-  }
-  
-  .lista button {
-    margin-left: 5px;
-    background-color: #2196f3;
-  }
-  
-  .lista button.excluir {
-    background-color: #f44336;
-  }
-  
-  .hidden {
-    display: none;
-  }
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  padding: 20px;
+  margin: 0;
+}
+
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+h1, h2 {
+  color: #333;
+}
+
+#calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+#calendar div {
+  background: #e2e8f0;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+#form-section {
+  margin-bottom: 20px;
+}
+
+input {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  margin: 10px 0;
+}
+
+button {
+  padding: 10px 15px;
+  background: #3182ce;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #2563eb;
+}

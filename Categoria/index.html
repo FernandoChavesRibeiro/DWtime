@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Organizador de Rotina</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Minhas Categorias</h1>
+
+    <form id="formCategoria" class="form">
+      <input type="text" id="nomeCategoria" placeholder="Nova categoria" required />
+      <button type="submit">Adicionar</button>
+    </form>
+
+    <ul id="listaCategorias" class="lista"></ul>
+
+    <section id="areaTarefas" class="hidden">
+      <h2 id="tituloTarefas"></h2>
+
+      <form id="formTarefa" class="form">
+        <input type="text" id="descricaoTarefa" placeholder="Nova tarefa" required />
+        <button type="submit">Adicionar Tarefa</button>
+      </form>
+
+      <ul id="listaTarefas" class="lista"></ul>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
